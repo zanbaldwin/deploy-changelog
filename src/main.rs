@@ -1,5 +1,3 @@
-// Input: GitHub Repository, GitHub Token, Slack Webhook.
-
 mod init;
 
 use octocrab::Octocrab;
@@ -106,6 +104,7 @@ impl Application {
 }
 
 fn main() {
+    // Args: {GitHub Repository, GitHub Token, Slack Webhook}.
     let args: Vec<String> = std::env::args().take(3).collect();
     let app: Application = match Application::new(args) {
         Ok(app) => app,
