@@ -1,17 +1,38 @@
+use crate::DEFAULT_BRANCH;
+use clap::{Parser, Subcommand};
 use octocrab::{Octocrab, OctocrabBuilder};
-use std::sync::Arc;
+use std::process::exit;
 
-pub(crate) fn repository_tuple(arg: Option<&String>) -> Result<(String, String), &'static str> {
-    let mut iter = arg.ok_or("GitHub repository not supplied.")?.splitn(2, '/');
-    let owner = iter
-        .next()
-        .ok_or("Missing owner name in GitHub repository.")?;
-    let repository = iter.next().ok_or("Missing name in GitHub repository.")?;
-    Ok((owner.to_owned(), repository.to_owned()))
+#[derive(Parser, Debug)]
+#[command(author, version, about, next_line_help = false)]
+pub(crate) struct Cli {
+    #[command(subcommand)]
+    pub(crate) command: Command,
+    pub(crate) repo: String,
+    #[arg(long, default_value = DEFAULT_BRANCH)]
+    pub(crate) head: String,
+    #[arg(short, long, env = "GITHUB_TOKEN")]
+    pub(crate) token: String,
 }
 
-pub(crate) fn setup_github_sdk(arg: Option<&String>) -> Result<Arc<Octocrab>, &'static str> {
-    let token = arg.ok_or("GitHub token not supplied.")?;
-    let builder = OctocrabBuilder::new().personal_token(token.clone());
-    octocrab::initialise(builder).map_err(|_| "Could not initialize GitHub SDK client.")
+#[derive(Subcommand, Debug)]
+pub(crate) enum Command {
+    List,
+    Notify {
+        #[arg(short, long)]
+        webhook: String,
+    },
+}
+
+pub(crate) fn setup_octocrab_client(token: String) -> Result<Octocrab, &'static str> {
+    let client = OctocrabBuilder::new()
+        .personal_token(token.clone())
+        .build()
+        .map_err(|_| "Could not initialize GitHub SDK client.")?;
+    Ok(client)
+}
+
+pub(crate) fn error(message: &str, code: i32) -> ! {
+    eprintln!("{message}");
+    exit(code);
 }

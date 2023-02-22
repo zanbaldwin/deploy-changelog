@@ -1,5 +1,5 @@
 [package]
-name = "slack-changelog"
+name = "deploy-changelog"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,3 +8,19 @@ edition = "2021"
 [dependencies]
 octocrab = "0.18.1"
 regex = "1.7.1"
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "^1.0"
+chrono = { version = "^0.4", default-features = false, features = ["serde", "clock"] }
+url = { version = "^2.2", features = ["serde"] }
+async-trait = "^0.1"
+tokio = { version = "^1.25", features = ["macros", "rt"] }
+clap = { version = "^4", features = ["env", "derive"] }
+dotenv = "^0.15"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
+debug = false
